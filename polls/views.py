@@ -5,6 +5,8 @@ from django.views import generic
 from django.utils import timezone
 from django.db import connection
 from django.utils.html import format_html
+# from django.utils.html import escape
+# from django.contrib.auth import authenticate, login
 
 from .models import Choice, Question
 from django.contrib.auth.models import User
@@ -14,6 +16,10 @@ def error_view(request):
     raise Exception("Simulated error")
     # Problem: This view simulates an error, which might give an attacker sensitive information about the application.
     # Fix: Remove this view in a production environment or handle errors properly by, for example, showing a generic error page.
+    # try:
+        # raise Exception("Simulated error")
+    # except Exception as e:
+        #return render(request, '500.html', status=500)
 
 
 def login_view(request):
@@ -24,7 +30,11 @@ def login_view(request):
         user = User.objects.filter(username=username, password=password).first()
         # Problem: Storing password as text, enabling broken authentication attacks.
         # Fix: Use Django's built-in authentication system which handles password hashing automatically.
-
+        # user = authenticate(request, username=username, password=password)
+        # The authenticate function checks the username and password and returns a user object if the credentials are correct, and None otherwise.
+        # if user is not None:
+        #   login(request, user)
+        # The login function logs the user in, creating a session.
         if user:
             request.session['user_id'] = user.id
             return redirect('polls:index')
@@ -38,8 +48,9 @@ def xss_vulnerable_view(request):
     user_input = request.GET.get('user_input', '')
     # Problem: User input is allowed directly into the HTML page, enabling XSS attacks.
     # Fix: Prevent XSS attacks by using Django's escape function to prevent HTML code execution.
+    # user_input_escaped = escape(user_input)
+    # return HttpResponse(f'<html><body>{user_input_escaped}<br><form method="get"><input type="text" name="user_input"><input type="submit" value="Submit"></form></body></html>')
     return HttpResponse(format_html('<html><body>{}<br><form method="get"><input type="text" name="user_input"><input type="submit" value="Submit"></form></body></html>', user_input))
-
 
 def vulnerable_view(request):
     param = request.GET.get('param')
